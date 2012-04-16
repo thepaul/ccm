@@ -364,12 +364,12 @@ class Node():
         else:
             return False
 
-    def nodetool(self, cmd):
+    def nodetool(self, cmd, extra_args=()):
         cdir = self.get_cassandra_dir()
         nodetool = os.path.join(cdir, 'bin', 'nodetool')
         env = common.make_cassandra_env(cdir, self.get_path())
         host = self.address()
-        args = [ nodetool, '-h', host, '-p', str(self.jmx_port), cmd ]
+        args = [ nodetool, '-h', host, '-p', str(self.jmx_port), cmd ] + list(extra_args)
         p = subprocess.Popen(args, env=env)
         p.wait()
 

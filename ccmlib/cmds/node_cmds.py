@@ -19,6 +19,7 @@ def node_cmds():
         "repair",
         "scrub",
         "decommission",
+        "nodetool",
         "json",
         "updateconf",
         "stress",
@@ -168,6 +169,8 @@ class NodeStopCmd(Cmd):
             exit(1)
 
 class _NodeToolCmd(Cmd):
+    extra_nodetool_args = ()
+
     def get_parser(self):
         parser = self._get_default_parser(self.usage, self.description())
         return parser
@@ -179,7 +182,22 @@ class _NodeToolCmd(Cmd):
         Cmd.validate(self, parser, options, args, node_name=True, load_cluster=True)
 
     def run(self):
-        self.node.nodetool(self.nodetool_cmd)
+        self.node.nodetool(self.nodetool_cmd, extra_args=self.extra_nodetool_args)
+
+class NodeNodetoolCmd(_NodeToolCmd):
+    usage = "usage: ccm $node_name nodetool [nodetool_command] [options]"
+    descr_text = "Call nodetool on this node with arbitrary command"
+
+    def get_parser(self):
+        parser = self._get_default_parser(self.usage, self.description(), ignore_unknown_options=True)
+        return parser
+
+    def validate(self, parser, options, args):
+        _NodeToolCmd.validate(self, parser, options, args)
+        if len(args) < 2:
+            sys.exit('No nodetool command given.')
+        self.nodetool_cmd = args[1]
+        self.extra_nodetool_args = parser.get_ignored() + args[2:]
 
 class NodeRingCmd(_NodeToolCmd):
     usage = "usage: ccm node_name ring [options]"
